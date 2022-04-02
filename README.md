@@ -11,6 +11,7 @@ uvicorn main:app --reload
 
 ## Demo Video
 Click to watch the video 
+
 [![DEMO VIDEO](http://img.youtube.com/vi/Dftw8s0xvqA/0.jpg)](https://youtu.be/Dftw8s0xvqA)
 
 ## License

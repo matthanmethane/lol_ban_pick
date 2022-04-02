@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Ban Pick</title>
+	</head>
+	<body>
+		<h1>LOL Ban Pick Simulator</h1>
+		<h2>Champion Lists</h2>
+		<div
+			class="container"
+			style="height: 500px; width: 1100px; overflow-y: scroll"
+		>
+			{% for row in champions|batch(10) %}
+			<div>
+				{% for champ in row %}
+				<button
+					id="{{ champ.id }}"
+					onclick="changeText(this.id);success();"
+					style="
+						height: 100px;
+						width: 100px;
+						background: url({{ url_for('static', path=('/champion/')) }}{{ champ.img_url }});
+					"
+				></button>
+				{% endfor %}
+			</div>
+			{% endfor %}
+		</div>
+
+		<div>
+			<h2>Pick</h2>
+			<h3>Blue</h3>
+			<input
+				id="bluePick1"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="bluePick2"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="bluePick3"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="bluePick4"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="bluePick5"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<h3>Red</h3>
+			<input
+				id="redPick1"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="redPick2"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="redPick3"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="redPick4"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="redPick5"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+		</div>
+
+		<div>
+			<h2>Ban</h2>
+			<h3>Blue</h3>
+			<input
+				id="blueBan1"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="blueBan2"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="blueBan3"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="blueBan4"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="blueBan5"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<h3>Red</h3>
+			<input
+				id="redBan1"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="redBan2"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="redBan3"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="redBan4"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+			<input
+				id="redBan5"
+				type="button"
+				value=""
+				style="height: 50px; width: 50px; visibility: visible"
+			/>
+		</div>
+
+		<h2>Your side: <span id="ws-id"></span></h2>
+		{% if side=='red' %}
+		<div id="redBanPickField">
+			<form action="" onsubmit="sendMessage(event)">
+				<input
+					type="text"
+					id="redBanPick"
+					autocomplete="off"
+					onkeyup="success()"
+				/>
+				<button id="redButton" disabled>Red Team Ban/Pick</button>
+			</form>
+		</div>
+		{% endif %} {% if side=='blue' %}
+		<div id="blueBanPickField">
+			<form action="" onsubmit="sendMessage(event)">
+				<input
+					type="text"
+					id="blueBanPick"
+					autocomplete="off"
+					onkeyup="success()"
+				/>
+				<button id="blueButton" disabled>Blue Team Ban/Pick</button>
+			</form>
+		</div>
+		{% endif %}
+
+		<ul id="messages"></ul>
+		<script>
+			var sideId = "{{ side|safe }}";
+			document.querySelector("#ws-id").textContent = sideId;
+			var ws = new WebSocket(`ws://localhost:8000/ws/${sideId}`);
+			var Phase = "";
+			var PhaseId = 0;
+			ws.onmessage = (event) => {
+				var data = JSON.parse(event.data);
+				console.log(data);
+				var prevBtnId = document.getElementById(data.prev_phase);
+				Phase = data.phase;
+				PhaseId = data.phase_id;
+				if (data.champ != "") {
+					prevBtnId.style.background =
+						'url("../static/champion/' + data.champ + '.png")';
+					prevBtnId.style.backgroundSize = "100%";
+					var messages = document.getElementById("messages");
+					var message = document.createElement("li");
+					var content = document.createTextNode(event.data);
+					message.appendChild(content);
+					messages.appendChild(message);
+					var btnChangeId = document.getElementById(data.champ);
+					btnChangeId.disabled = true;
+					btnChangeId.style.opacity = 0.5;
+				}
+				console.log(sideId);
+				if (Phase.includes("red")) {
+					if (sideId == "blue") {
+						document.getElementById(
+							"blueBanPickField"
+						).style.visibility = "hidden";
+					} else {
+						document.getElementById(
+							"redBanPickField"
+						).style.visibility = "visible";
+					}
+				}
+				if (Phase.includes("blue")) {
+					if (sideId == "red") {
+						document.getElementById(
+							"redBanPickField"
+						).style.visibility = "hidden";
+					} else {
+						document.getElementById(
+							"blueBanPickField"
+						).style.visibility = "visible";
+					}
+				}
+			};
+
+			function sendMessage(event) {
+				var input = document.getElementById(
+					"{{ side|safe }}" + "BanPick"
+				);
+
+				ws.send(
+					JSON.stringify({
+						side: "{{ side|safe }}",
+						champ: input.value,
+						phase_id: PhaseId + 1,
+					})
+				);
+				input.value = "";
+				event.preventDefault();
+			}
+
+			function success() {
+				if (
+					document.getElementById("{{ side|safe }}" + "BanPick")
+						.value === ""
+				) {
+					document.getElementById(
+						"{{ side|safe }}" + "Button"
+					).disabled = true;
+				} else {
+					document.getElementById(
+						"{{ side|safe }}" + "Button"
+					).disabled = false;
+				}
+			}
+
+			function changeText(btnId) {
+				var textField = document.getElementById(
+					"{{ side|safe }}" + "BanPick"
+				);
+				textField.value = btnId;
+				changeHoverBtn();
+			}
+
+			function disablePickBanChamp(btnId) {
+				document.getElementById(btnId).disabled = true;
+			}
+
+			function changeHoverBtn() {
+				var input = document.getElementById(
+					"{{ side|safe }}" + "BanPick"
+				);
+				var btnId = document.getElementById(Phase);
+				btnId.style.background =
+					'url("../static/champion/' + input.value + '.png")';
+				btnId.style.backgroundSize = "100%";
+			}
+		</script>
+	</body>
+</html>
